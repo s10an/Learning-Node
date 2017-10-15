@@ -1,0 +1,1 @@
+This text have replaced the original text by fs.writeFile
