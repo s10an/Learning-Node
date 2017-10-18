@@ -11,8 +11,7 @@ http.createServer(function (req, res) {
             console.log('upload file');
             fs.readFile(`./html${filename}.html`, function(err,data){
                 if(err){
-                    res.writeHead(404,{'Content-Type': 'text/html'});
-                    return res.end("404 Not Found");
+                    return returnNotFound(res);
                 }
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.write(data);
@@ -20,17 +19,36 @@ http.createServer(function (req, res) {
             });
             break;
         case '/fileuploading':
-            console.log('file uploading');
+            console.log('file uploading');            
             var form = new formidable.IncomingForm();
             form.parse(req, function (err, fields, files) {
-                res.write('File uploaded');
+                if(files.filetoupload === undefined ){
+                    return returnBadRequest(res);
+                }
+                var oldpath = files.filetoupload.path;
+                var newpath = 'C:/temp/' + files.filetoupload.name;
+                fs.rename(oldpath, newpath, function (err) {
+                    if (err) throw err;
+                });
+                res.write('File uploaded and moved!');
                 res.end();
-              });
-              break;
+            });
+            break;
+
         default:
-            console.log('unknown site');
-            res.writeHead(404,{'Content-Type': 'text/html'});
-            return res.end("404 Not Found");
+            return returnNotFound(res)
             break;
     }
 }).listen(8080);
+
+function returnNotFound(res){
+    console.log('Not Found');
+    res.writeHead(404,{'Content-Type': 'text/html'});
+    return res.end("404 Not Found");
+}
+
+function returnBadRequest(res){
+    console.log('Bad Request');
+    res.writeHead(400,{'Content-Type': 'text/html'});
+    return res.end("400 Bad Request");
+}
